@@ -145,7 +145,7 @@ found:
   memset(&p->context, 0, sizeof(p->context));
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
-
+  p->syscall_trace_mask = 0; // provide a default value
   return p;
 }
 
@@ -311,6 +311,7 @@ fork(void)
   safestrcpy(np->name, p->name, sizeof(p->name));
 
   pid = np->pid;
+  np->syscall_trace_mask = p->syscall_trace_mask;
 
   release(&np->lock);
 
@@ -680,4 +681,14 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+void proc_count(){
+  uint64 cnt;
+  for(struct proc* p = proc; p < &proc[NPROC]; p++)  {
+    if(p->state != UNUSED){
+      cnt++;
+    }
+  };
+  return cnt;
 }
