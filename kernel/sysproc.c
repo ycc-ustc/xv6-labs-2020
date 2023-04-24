@@ -6,6 +6,33 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "sysinfo.h"
+
+uint64
+sys_sysinfo(void)
+{
+  uint64 addr;
+  // Retrieve an argument from trapframe->a0
+  if(argaddr(0, &addr) < 0)
+    return -1;
+  
+  struct sysinfo sinfo;
+  sinfo.freemem = k_free_count(); 
+  sinfo.nproc = proc_count(); 
+  
+  if(copyout(myproc()->pagetable, addr, (char *)&sinfo, sizeof(sinfo)) < 0)
+    return -1;
+  return 0;
+}
+
+uint64
+sys_trace(void)
+{
+  int mask;
+  argint(0, &mask);
+  myproc()->syscall_trace_mask = mask;
+  return 0;
+}
 
 uint64
 sys_exit(void)
